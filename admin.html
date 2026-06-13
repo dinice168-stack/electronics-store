@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TechZone 管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#4F46E5;--primary-dark:#4338CA;--primary-light:#EEF2FF;--danger:#EF4444;--success:#10B981;--warning:#F59E0B;--info:#3B82F6;--gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;--gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;--gray-900:#111827;--radius:10px;--shadow:0 1px 3px rgba(0,0,0,.06)}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--gray-50);color:var(--gray-800);min-height:100vh}
+
+/* Login */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px}
+.login-box{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.login-box h1{font-size:24px;font-weight:700;text-align:center;margin-bottom:6px}
+.login-box p{text-align:center;color:var(--gray-400);font-size:13px;margin-bottom:28px}
+.login-box .logo{text-align:center;font-size:48px;margin-bottom:16px}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:13px;font-weight:500;color:var(--gray-600);margin-bottom:6px}
+.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:14px;outline:none;transition:border .2s}
+.form-input:focus{border-color:var(--primary)}
+.login-btn{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.login-btn:hover{background:var(--primary-dark)}
+.login-btn:active{transform:scale(.98)}
+.login-error{color:var(--danger);font-size:12px;margin-top:8px;text-align:center;display:none}
+
+/* Layout */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--gray-900);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50}
+.sidebar-logo{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700}
+.sidebar-logo span{font-size:28px}
+.sidebar-nav{flex:1;padding:12px 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;cursor:pointer;transition:all .15s;font-size:14px;color:rgba(255,255,255,.6);font-weight:500}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9)}
+.nav-item.active{background:var(--primary);color:#fff;border-radius:0}
+.nav-item .nav-icon{font-size:18px;width:24px;text-align:center}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.3)}
+.main{flex:1;margin-left:220px;padding:24px;min-height:100vh}
+
+/* Header */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-title{font-size:22px;font-weight:700;color:var(--gray-900)}
+.page-desc{font-size:13px;color:var(--gray-400);margin-top:2px}
+.header-actions{display:flex;gap:10px}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+.stat-card:nth-child(2){border-left-color:var(--success)}
+.stat-card:nth-child(3){border-left-color:var(--warning)}
+.stat-card:nth-child(4){border-left-color:var(--info)}
+.stat-card .stat-label{font-size:13px;color:var(--gray-500);margin-bottom:6px}
+.stat-card .stat-value{font-size:26px;font-weight:700;color:var(--gray-800)}
+.stat-card .stat-change{font-size:12px;color:var(--success);margin-top:4px}
+
+/* Card */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-100)}
+.card-title{font-size:15px;font-weight:600}
+.card-body{padding:20px}
+
+/* Table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:12px 16px;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--gray-100);white-space:nowrap}
+td{padding:14px 16px;font-size:13px;border-bottom:1px solid var(--gray-50);vertical-align:middle}
+tr:hover{background:var(--gray-50)}
+
+/* Buttons */
+.btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--gray-200);background:#fff;color:var(--gray-600);transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--gray-300);background:var(--gray-50)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn-danger:hover{opacity:.9}
+.btn-success{background:var(--success);color:#fff;border-color:var(--success)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+/* Badge */
+.badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;display:inline-block}
+.badge-pending{background:#FEF3C7;color:#D97706}
+.badge-paid{background:#DBEAFE;color:#2563EB}
+.badge-shipped{background:#E0E7FF;color:#4F46E5}
+.badge-received{background:#D1FAE5;color:#059669}
+.badge-cancelled{background:#F3F4F6;color:#6B7280}
+.badge-admin{background:#F3E8FF;color:#7C3AED}
+
+/* Modal */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:520px;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--gray-100)}
+.modal-head h3{font-size:16px;font-weight:600}
+.modal-close{width:30px;height:30px;border-radius:8px;border:none;background:var(--gray-100);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--gray-200)}
+.modal-body{padding:20px;overflow-y:auto;max-height:calc(85vh - 130px)}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--gray-100)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* Tabs */
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--gray-100);margin-bottom:20px}
+.tab-btn{padding:10px 20px;font-size:14px;color:var(--gray-500);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:500;transition:all .2s}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+
+/* Toast */
+.toast{position:fixed;top:20px;right:20px;background:var(--gray-900);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:200;opacity:0;transform:translateY(-10px);transition:all .3s}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+
+/* Upload */
+.upload-area{border:2px dashed var(--gray-200);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-50)}
+.upload-area:hover{border-color:var(--primary);background:var(--primary-light)}
+.upload-area.dragging{border-color:var(--primary);background:var(--primary-light);transform:scale(1.01)}
+.upload-area .upload-icon{font-size:32px;margin-bottom:8px}
+.upload-area .upload-text{font-size:13px;color:var(--gray-500)}
+.upload-area .upload-hint{font-size:11px;color:var(--gray-400);margin-top:4px}
+.upload-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.upload-item{position:relative;width:100px;height:100px;border-radius:10px;overflow:hidden;border:1px solid var(--gray-200);background:var(--gray-100)}
+.upload-item img,.upload-item video{width:100%;height:100%;object-fit:cover}
+.upload-item .upload-remove{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;opacity:0;transition:opacity .2s}
+.upload-item:hover .upload-remove{opacity:1}
+.upload-item .upload-name{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.upload-item.is-video .play-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.upload-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1.5px solid var(--gray-200);border-radius:8px;background:#fff;color:var(--gray-600);font-size:13px;cursor:pointer;transition:all .2s}
+.upload-btn:hover{border-color:var(--primary);color:var(--primary)}
+.upload-progress{height:4px;background:var(--gray-200);border-radius:2px;margin-top:8px;overflow:hidden;display:none}
+.upload-progress .bar{height:100%;background:var(--primary);border-radius:2px;transition:width .3s;width:0}
+
+/* Responsive */
+@media(max-width:768px){
+  .sidebar{width:60px}
+  .sidebar-logo span:last-child,.nav-item span:not(.nav-icon),.sidebar-footer{display:none}
+  .sidebar-logo{justify-content:center;padding:16px}
+  .nav-item{justify-content:center;padding:12px}
+  .main{margin-left:60px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Login ===== -->
+<div id="loginPage" class="login-page">
+  <div class="login-box">
+    <div class="logo">📱</div>
+    <h1>TechZone 管理后台</h1>
+    <p>请使用管理员账号登录</p>
+    <div class="form-group">
+      <label>账号</label>
+      <input class="form-input" id="loginPhone" placeholder="管理员手机号" value="admin">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input class="form-input" id="loginPwd" type="password" placeholder="密码" value="admin123">
+    </div>
+    <button class="login-btn" onclick="doLogin()">登 录</button>
+    <div class="login-error" id="loginError"></div>
+    <p style="margin-top:16px;font-size:12px;color:var(--gray-400);text-align:center">默认账号: admin / admin123</p>
+  </div>
+</div>
+
+<!-- ===== Layout ===== -->
+<div id="adminLayout" class="layout" style="display:none">
+  <div class="sidebar">
+    <div class="sidebar-logo"><span>📱</span><span>TechZone</span></div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="switchNav('dashboard',this)"><span class="nav-icon">📊</span><span>仪表盘</span></div>
+      <div class="nav-item" onclick="switchNav('banners',this)"><span class="nav-icon">🖼️</span><span>Banner管理</span></div>
+      <div class="nav-item" onclick="switchNav('products',this)"><span class="nav-icon">📦</span><span>商品管理</span></div>
+      <div class="nav-item" onclick="switchNav('orders',this)"><span class="nav-icon">📋</span><span>订单管理</span></div>
+      <div class="nav-item" onclick="switchNav('users',this)"><span class="nav-icon">👥</span><span>用户管理</span></div>
+    </div>
+    <div class="sidebar-footer">
+      <div style="cursor:pointer" onclick="doLogout()">退出登录</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Dashboard -->
+    <div id="nav-dashboard" class="nav-page">
+      <div class="page-header">
+        <div><div class="page-title">仪表盘</div><div class="page-desc">欢迎回来，管理员</div></div>
+        <div class="header-actions"><span style="font-size:13px;color:var(--gray-400)" id="todayDate"></span></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">今日订单</div><div class="stat-value" id="sTodayOrders">0</div></div>
+        <div class="stat-card"><div class="stat-label">今日收入</div><div class="stat-value" id="sTodayRevenue">¥0</div></div>
+        <div class="stat-card"><div class="stat-label">待发货</div><div class="stat-value" id="sPending">0</div></div>
+        <div class="stat-card"><div class="stat-label">总用户</div><div class="stat-value" id="sUsers">0</div></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">总订单</div><div class="stat-value" id="sTotalOrders">0</div></div>
+        <div class="stat-card"><div class="stat-label">总收入</div><div class="stat-value" id="sTotalRevenue">¥0</div></div>
+        <div class="stat-card"><div class="stat-label">商品数量</div><div class="stat-value" id="sProducts">0</div></div>
+        <div class="stat-card"><div class="stat-label">已完成</div><div class="stat-value" id="sDone">0</div></div>
+      </div>
+    </div>
+
+    <!-- Banners -->
+    <div id="nav-banners" class="nav-page" style="display:none">
+      <div class="page-header">
+        <div><div class="page-title">Banner管理</div><div class="page-desc">管理首页轮播图</div></div>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="openBannerModal()">+ 添加Banner</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>预览</th><th>标题</th><th>副标题</th><th>背景</th><th>图片</th><th>排序</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody id="bannerTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div id="nav-products" class="nav-page" style="display:none">
+      <div class="page-header">
+        <div><div class="page-title">商品管理</div><div class="page-desc">管理所有在售商品</div></div>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="openProductModal()">+ 添加商品</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>图标</th><th>商品名称</th><th>分类</th><th>价格</th><th>库存</th><th>销量</th><th>标签</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody id="productTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders -->
+    <div id="nav-orders" class="nav-page" style="display:none">
+      <div class="page-header">
+        <div><div class="page-title">订单管理</div><div class="page-desc">查看和管理所有订单</div></div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-btn active" onclick="loadAdminOrders('all',this)">全部</div>
+        <div class="tab-btn" onclick="loadAdminOrders('pending',this)">待付款</div>
+        <div class="tab-btn" onclick="loadAdminOrders('paid',this)">已付款</div>
+        <div class="tab-btn" onclick="loadAdminOrders('shipped',this)">已发货</div>
+        <div class="tab-btn" onclick="loadAdminOrders('received',this)">已完成</div>
+        <div class="tab-btn" onclick="loadAdminOrders('cancelled',this)">已取消</div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>订单号</th><th>用户</th><th>商品</th><th>金额</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
+              <tbody id="orderTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div id="nav-users" class="nav-page" style="display:none">
+      <div class="page-header">
+        <div><div class="page-title">用户管理</div><div class="page-desc">所有注册用户</div></div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>用户ID</th><th>手机号</th><th>昵称</th><th>角色</th><th>注册时间</th></tr></thead>
+              <tbody id="userTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-mask" id="productModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="productModalTitle">添加商品</h3><button class="modal-close" onclick="closeProductModal()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pId">
+      <div class="form-group"><label>商品名称 *</label><input class="form-input" id="pName" placeholder="商品名称"></div>
+      <div class="form-row">
+        <div class="form-group"><label>售价 *</label><input class="form-input" id="pPrice" type="number" placeholder="售价"></div>
+        <div class="form-group"><label>原价</label><input class="form-input" id="pOriginalPrice" type="number" placeholder="原价"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>分类 *</label><select class="form-input" id="pCategory"><option value="手机">手机</option><option value="电脑">电脑</option><option value="耳机">耳机</option><option value="智能">智能穿戴</option><option value="平板">平板</option><option value="相机">相机</option></select></div>
+        <div class="form-group"><label>图标</label><input class="form-input" id="pIcon" placeholder="emoji图标 如 📱"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>库存</label><input class="form-input" id="pStock" type="number" placeholder="库存数量" value="100"></div>
+        <div class="form-group"><label>标签</label><input class="form-input" id="pTag" placeholder="如: 新品/热销/爆款"></div>
+      </div>
+      <div class="form-group"><label>商品描述</label><textarea class="form-input" id="pDesc" rows="3" placeholder="商品描述" style="resize:vertical"></textarea></div>
+      <div class="form-group">
+        <label>主图（封面图）</label>
+        <div class="upload-area" id="mainImageUpload" onclick="document.getElementById('mainImageInput').click()">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-text">点击或拖拽上传主图</div>
+          <div class="upload-hint">支持 JPG/PNG/GIF/WebP，建议尺寸 800x800</div>
+        </div>
+        <input type="file" id="mainImageInput" accept="image/*" style="display:none" onchange="handleUpload(this,'mainImage')">
+        <div class="upload-list" id="mainImageList"></div>
+        <input type="hidden" id="pImage">
+      </div>
+      <div class="form-group">
+        <label>商品视频（可选）</label>
+        <div class="upload-area" id="mainVideoUpload" onclick="document.getElementById('mainVideoInput').click()">
+          <div class="upload-icon">🎬</div>
+          <div class="upload-text">点击或拖拽上传视频</div>
+          <div class="upload-hint">支持 MP4/MOV/WebM，最大 100MB</div>
+        </div>
+        <input type="file" id="mainVideoInput" accept="video/*" style="display:none" onchange="handleUpload(this,'mainVideo')">
+        <div class="upload-list" id="mainVideoList"></div>
+        <input type="hidden" id="pVideo">
+      </div>
+      <div class="form-group">
+        <label>详情图（可多张）</label>
+        <div class="upload-area" id="detailImagesUpload" onclick="document.getElementById('detailImagesInput').click()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">点击或拖拽上传详情图</div>
+          <div class="upload-hint">支持多选，最多20张</div>
+        </div>
+        <input type="file" id="detailImagesInput" accept="image/*" multiple style="display:none" onchange="handleUploadMultiple(this,'detailImages')">
+        <div class="upload-list" id="detailImagesList"></div>
+        <input type="hidden" id="pDetailImages">
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeProductModal()">取消</button><button class="btn btn-primary" onclick="saveProduct()">保存</button></div>
+  </div>
+</div>
+
+<!-- Banner Modal -->
+<div class="modal-mask" id="bannerModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="bannerModalTitle">添加Banner</h3><button class="modal-close" onclick="closeBannerModal()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="bId">
+      <div class="form-group"><label>标题 *</label><input class="form-input" id="bTitle" placeholder="Banner标题"></div>
+      <div class="form-group"><label>副标题</label><input class="form-input" id="bSubtitle" placeholder="副标题描述"></div>
+      <div class="form-group"><label>背景色</label><input class="form-input" id="bBg" placeholder="如: linear-gradient(135deg,#667eea,#764ba2) 或 #ff6b6b"></div>
+      <div class="form-group">
+        <label>Banner图片</label>
+        <div class="upload-area" id="bannerImageUpload" onclick="document.getElementById('bannerImageInput').click()">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-text">点击或拖拽上传Banner图片</div>
+          <div class="upload-hint">建议尺寸 1200x400，支持 JPG/PNG/WebP</div>
+        </div>
+        <input type="file" id="bannerImageInput" accept="image/*" style="display:none" onchange="handleUpload(this,'bannerImage')">
+        <div class="upload-list" id="bannerImageList"></div>
+        <input type="hidden" id="bImage">
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>排序</label><input class="form-input" id="bSort" type="number" placeholder="数字越小越靠前" value="1"></div>
+        <div class="form-group"><label>状态</label><select class="form-input" id="bStatus"><option value="1">显示</option><option value="0">隐藏</option></select></div>
+      </div>
+      <div style="margin-top:12px;padding:12px;background:var(--gray-50);border-radius:8px">
+        <div style="font-size:12px;color:var(--gray-500);margin-bottom:8px">预览效果</div>
+        <div id="bannerPreview" style="height:80px;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600">Banner预览</div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeBannerModal()">取消</button><button class="btn btn-primary" onclick="saveBanner()">保存</button></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = location.origin + '/api';
+let token = localStorage.getItem('admin_token') || '';
+let adminUser = JSON.parse(localStorage.getItem('admin_user') || 'null');
+
+function authHeaders() { return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
+async function api(method, url, body) {
+  try {
+    const opts = { method, headers: authHeaders() };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + url, opts);
+    return await r.json();
+  } catch { return { code: -1, msg: '网络错误' }; }
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  if (token && adminUser) showAdmin();
+  else showLogin();
+});
+
+function showLogin() { document.getElementById('loginPage').style.display = 'flex'; document.getElementById('adminLayout').style.display = 'none'; }
+function showAdmin() { document.getElementById('loginPage').style.display = 'none'; document.getElementById('adminLayout').style.display = 'flex'; loadDashboard(); }
+
+async function doLogin() {
+  const phone = document.getElementById('loginPhone').value;
+  const password = document.getElementById('loginPwd').value;
+  if (!phone || !password) return showErr('请输入账号密码');
+  const r = await api('POST', '/auth/login', { phone, password });
+  if (r.code !== 0) { showErr(r.msg); return; }
+  if (r.data.user.role !== 'admin') { showErr('无管理员权限'); return; }
+  token = r.data.token; adminUser = r.data.user;
+  localStorage.setItem('admin_token', token);
+  localStorage.setItem('admin_user', JSON.stringify(adminUser));
+  showAdmin();
+}
+
+function doLogout() { token = ''; adminUser = null; localStorage.removeItem('admin_token'); localStorage.removeItem('admin_user'); showLogin(); }
+function showErr(msg) { const el = document.getElementById('loginError'); el.textContent = msg; el.style.display = 'block'; }
+
+function switchNav(name, el) {
+  document.querySelectorAll('.nav-page').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-' + name).style.display = 'block';
+  el.classList.add('active');
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'banners') loadBanners();
+  if (name === 'products') loadProducts();
+  if (name === 'orders') loadAdminOrders('all');
+  if (name === 'users') loadUsers();
+}
+
+// Dashboard
+async function loadDashboard() {
+  const r = await api('GET', '/admin/stats');
+  if (r.code !== 0) return;
+  const d = r.data;
+  document.getElementById('sTodayOrders').textContent = d.todayOrders;
+  document.getElementById('sTodayRevenue').textContent = '¥' + d.todayRevenue.toLocaleString();
+  document.getElementById('sPending').textContent = d.pendingOrders;
+  document.getElementById('sUsers').textContent = d.totalUsers;
+  document.getElementById('sTotalOrders').textContent = d.totalOrders;
+  document.getElementById('sTotalRevenue').textContent = '¥' + d.totalRevenue.toLocaleString();
+  document.getElementById('sProducts').textContent = d.totalProducts;
+  document.getElementById('sDone').textContent = d.shippedOrders;
+}
+
+// Products
+let allProducts = [];
+async function loadProducts() {
+  const r = await api('GET', '/products?pageSize=200');
+  if (r.code === 0) allProducts = r.data.list;
+  renderProductTable();
+}
+
+function renderProductTable() {
+  const tb = document.getElementById('productTable');
+  tb.innerHTML = allProducts.map(p => {
+    const imgHtml = p.image ? `<img src="${p.image}" style="width:48px;height:48px;border-radius:8px;object-fit:cover">` : `<div style="width:48px;height:48px;background:var(--gray-100);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px">${p.icon}</div>`;
+    const mediaBadges = [];
+    if (p.image) mediaBadges.push('<span class="badge badge-received" style="font-size:9px">有主图</span>');
+    if (p.video) mediaBadges.push('<span class="badge badge-shipped" style="font-size:9px">有视频</span>');
+    if (p.detailImages && p.detailImages.length) mediaBadges.push('<span class="badge badge-pending" style="font-size:9px">' + p.detailImages.length + '张详情图</span>');
+    return `<tr>
+    <td>${imgHtml}</td>
+    <td><div style="font-weight:500">${p.name}</div><div style="font-size:11px;color:var(--gray-400);margin-top:2px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">${p.id} ${mediaBadges.join(' ')}</div></td>
+    <td>${p.category}</td>
+    <td><span style="color:var(--danger);font-weight:600">¥${p.price.toLocaleString()}</span><br><span style="font-size:11px;color:var(--gray-400);text-decoration:line-through">¥${p.originalPrice.toLocaleString()}</span></td>
+    <td>${p.stock}</td>
+    <td>${p.sales}</td>
+    <td>${p.tag ? '<span class="badge badge-shipped">' + p.tag + '</span>' : '-'}</td>
+    <td>${p.status === 1 ? '<span class="badge badge-received">在售</span>' : '<span class="badge badge-cancelled">下架</span>'}</td>
+    <td>
+      <button class="btn btn-sm" onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&#39;")})'>编辑</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}')">删除</button>
+    </td>
+  </tr>`).join('');
+}
+
+function openProductModal(product) {
+  document.getElementById('productModalTitle').textContent = product ? '编辑商品' : '添加商品';
+  document.getElementById('pId').value = product ? product.id : '';
+  document.getElementById('pName').value = product ? product.name : '';
+  document.getElementById('pPrice').value = product ? product.price : '';
+  document.getElementById('pOriginalPrice').value = product ? product.originalPrice : '';
+  document.getElementById('pCategory').value = product ? product.category : '手机';
+  document.getElementById('pIcon').value = product ? product.icon : '📱';
+  document.getElementById('pStock').value = product ? product.stock : 100;
+  document.getElementById('pTag').value = product ? product.tag : '';
+  document.getElementById('pDesc').value = product ? product.desc : '';
+  document.getElementById('pImage').value = product ? (product.image || '') : '';
+  document.getElementById('pVideo').value = product ? (product.video || '') : '';
+  document.getElementById('pDetailImages').value = product ? (product.detailImages || []).join(',') : '';
+  const mainImgList = document.getElementById('mainImageList');
+  const mainVidList = document.getElementById('mainVideoList');
+  const detailImgList = document.getElementById('detailImagesList');
+  mainImgList.innerHTML = '';
+  mainVidList.innerHTML = '';
+  detailImgList.innerHTML = '';
+  if (product && product.image) renderUploadItem(mainImgList, product.image, 'mainImage', false);
+  if (product && product.video) renderUploadItem(mainVidList, product.video, 'mainVideo', true);
+  if (product && product.detailImages && product.detailImages.length) renderDetailImages(detailImgList, product.detailImages);
+  document.getElementById('productModal').classList.add('show');
+}
+
+function editProduct(p) { openProductModal(p); }
+function closeProductModal() { document.getElementById('productModal').classList.remove('show'); }
+
+async function saveProduct() {
+  const id = document.getElementById('pId').value;
+  const detailImagesVal = document.getElementById('pDetailImages').value;
+  const data = {
+    name: document.getElementById('pName').value,
+    price: Number(document.getElementById('pPrice').value),
+    originalPrice: Number(document.getElementById('pOriginalPrice').value) || Number(document.getElementById('pPrice').value),
+    category: document.getElementById('pCategory').value,
+    icon: document.getElementById('pIcon').value || '📦',
+    stock: Number(document.getElementById('pStock').value),
+    tag: document.getElementById('pTag').value,
+    desc: document.getElementById('pDesc').value,
+    image: document.getElementById('pImage').value,
+    video: document.getElementById('pVideo').value,
+    detailImages: detailImagesVal ? detailImagesVal.split(',').filter(Boolean) : []
+  };
+  if (!data.name || !data.price) return toast('请填写商品名称和价格', 'error');
+  let r;
+  if (id) r = await api('PUT', '/products/' + id, data);
+  else r = await api('POST', '/products', data);
+  if (r.code === 0) { toast('保存成功'); closeProductModal(); loadProducts(); }
+  else toast(r.msg, 'error');
+}
+
+async function deleteProduct(id) {
+  if (!confirm('确定删除该商品？')) return;
+  const r = await api('DELETE', '/products/' + id);
+  if (r.code === 0) { toast('删除成功'); loadProducts(); } else toast(r.msg, 'error');
+}
+
+// Upload
+async function handleUpload(input, fieldKey) {
+  const file = input.files[0];
+  if (!file) return;
+  const listEl = document.getElementById(fieldKey + 'List');
+  listEl.innerHTML = '<div class="upload-item" style="display:flex;align-items:center;justify-content:center"><div class="loading" style="padding:0"></div></div>';
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch(API + '/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd });
+    const res = await r.json();
+    if (res.code === 0) {
+      document.getElementById(fieldKey === 'bannerImage' ? 'bImage' : (fieldKey === 'mainImage' ? 'pImage' : 'pVideo')).value = res.data.url;
+      renderUploadItem(listEl, res.data.url, fieldKey, file.type.startsWith('video/'));
+    } else { toast(res.msg, 'error'); listEl.innerHTML = ''; }
+  } catch { toast('上传失败', 'error'); listEl.innerHTML = ''; }
+  input.value = '';
+}
+
+async function handleUploadMultiple(input, fieldKey) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const listEl = document.getElementById(fieldKey + 'List');
+  const hiddenInput = document.getElementById('pDetailImages');
+  let existing = hiddenInput.value ? hiddenInput.value.split(',').filter(Boolean) : [];
+  listEl.innerHTML = '<div class="upload-item" style="display:flex;align-items:center;justify-content:center"><div class="loading" style="padding:0"></div></div>';
+  const fd = new FormData();
+  files.forEach(f => fd.append('files', f));
+  try {
+    const r = await fetch(API + '/upload/multiple', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd });
+    const res = await r.json();
+    if (res.code === 0) {
+      existing = existing.concat(res.data.map(d => d.url));
+      hiddenInput.value = existing.join(',');
+      renderDetailImages(listEl, existing);
+    } else { toast(res.msg, 'error'); listEl.innerHTML = ''; }
+  } catch { toast('上传失败', 'error'); listEl.innerHTML = ''; }
+  input.value = '';
+}
+
+function renderUploadItem(listEl, url, fieldKey, isVideo) {
+  if (isVideo) {
+    listEl.innerHTML = `<div class="upload-item is-video"><video src="${url}"></video><div class="play-icon">▶</div><div class="upload-remove" onclick="removeUpload('${fieldKey}','${url}',this)">✕</div></div>`;
+  } else {
+    listEl.innerHTML = `<div class="upload-item"><img src="${url}"><div class="upload-remove" onclick="removeUpload('${fieldKey}','${url}',this)">✕</div></div>`;
+  }
+}
+
+function renderDetailImages(listEl, urls) {
+  listEl.innerHTML = urls.map((url, i) => `<div class="upload-item"><img src="${url}"><div class="upload-remove" onclick="removeDetailImage(${i})">✕</div></div>`).join('');
+}
+
+function removeUpload(fieldKey, url, btn) {
+  const hiddenId = fieldKey === 'bannerImage' ? 'bImage' : (fieldKey === 'mainImage' ? 'pImage' : 'pVideo');
+  document.getElementById(hiddenId).value = '';
+  btn.closest('.upload-item').remove();
+}
+
+function removeDetailImage(idx) {
+  const hiddenInput = document.getElementById('pDetailImages');
+  let urls = hiddenInput.value.split(',').filter(Boolean);
+  urls.splice(idx, 1);
+  hiddenInput.value = urls.join(',');
+  renderDetailImages(document.getElementById('detailImagesList'), urls);
+}
+
+// Banners
+let allBanners = [];
+async function loadBanners() {
+  const r = await api('GET', '/banners');
+  if (r.code === 0) allBanners = r.data || [];
+  renderBannerTable();
+}
+
+function renderBannerTable() {
+  const tb = document.getElementById('bannerTable');
+  tb.innerHTML = allBanners.map(b => {
+    const previewStyle = b.image ? `background-image:url('${b.image}');background-color:${b.bg || '#667eea'};background-size:cover;background-position:center` : `background:${b.bg || 'linear-gradient(135deg,#667eea,#764ba2)'}`;
+    return `<tr>
+      <td><div style="width:120px;height:50px;border-radius:6px;${previewStyle};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600">${b.title}</div></td>
+      <td style="font-weight:500">${b.title}</td>
+      <td style="color:var(--gray-500)">${b.subtitle || '-'}</td>
+      <td><code style="font-size:10px;word-break:break-all;max-width:120px;display:block">${b.bg || '-'}</code></td>
+      <td>${b.image ? '<span class="badge badge-received">有图片</span>' : '<span class="badge badge-cancelled">无</span>'}</td>
+      <td>${b.sort}</td>
+      <td>${b.status === 1 ? '<span class="badge badge-received">显示</span>' : '<span class="badge badge-cancelled">隐藏</span>'}</td>
+      <td>
+        <button class="btn btn-sm" onclick='editBanner(${JSON.stringify(b).replace(/'/g, "&#39;")})'>编辑</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteBanner('${b.id}')">删除</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--gray-400)">暂无Banner，点击右上角添加</td></tr>';
+}
+
+function openBannerModal(banner) {
+  document.getElementById('bannerModalTitle').textContent = banner ? '编辑Banner' : '添加Banner';
+  document.getElementById('bId').value = banner ? banner.id : '';
+  document.getElementById('bTitle').value = banner ? banner.title : '';
+  document.getElementById('bSubtitle').value = banner ? banner.subtitle : '';
+  document.getElementById('bBg').value = banner ? banner.bg : 'linear-gradient(135deg,#667eea,#764ba2)';
+  document.getElementById('bImage').value = banner ? (banner.image || '') : '';
+  document.getElementById('bSort').value = banner ? banner.sort : allBanners.length + 1;
+  document.getElementById('bStatus').value = banner ? banner.status : 1;
+  const bannerImgList = document.getElementById('bannerImageList');
+  bannerImgList.innerHTML = '';
+  if (banner && banner.image) renderUploadItem(bannerImgList, banner.image, 'bannerImage', false);
+  updateBannerPreview();
+  document.getElementById('bannerModal').classList.add('show');
+}
+
+function editBanner(b) { openBannerModal(b); }
+function closeBannerModal() { document.getElementById('bannerModal').classList.remove('show'); }
+
+function updateBannerPreview() {
+  const bg = document.getElementById('bBg').value || 'linear-gradient(135deg,#667eea,#764ba2)';
+  const image = document.getElementById('bImage').value;
+  const title = document.getElementById('bTitle').value || 'Banner预览';
+  const preview = document.getElementById('bannerPreview');
+  if (image) {
+    preview.style.background = `url('${image}') center/cover`;
+    preview.style.backgroundColor = bg;
+  } else {
+    preview.style.background = bg;
+    preview.style.backgroundColor = '';
+  }
+  preview.textContent = title;
+}
+
+document.getElementById('bBg')?.addEventListener('input', updateBannerPreview);
+document.getElementById('bImage')?.addEventListener('input', updateBannerPreview);
+document.getElementById('bTitle')?.addEventListener('input', updateBannerPreview);
+
+async function saveBanner() {
+  const id = document.getElementById('bId').value;
+  const data = {
+    title: document.getElementById('bTitle').value,
+    subtitle: document.getElementById('bSubtitle').value,
+    bg: document.getElementById('bBg').value || 'linear-gradient(135deg,#667eea,#764ba2)',
+    image: document.getElementById('bImage').value,
+    sort: Number(document.getElementById('bSort').value),
+    status: Number(document.getElementById('bStatus').value)
+  };
+  if (!data.title) return toast('请输入标题', 'error');
+  let r;
+  if (id) r = await api('PUT', '/banners/' + id, data);
+  else r = await api('POST', '/banners', data);
+  if (r.code === 0) { toast('保存成功'); closeBannerModal(); loadBanners(); } else toast(r.msg, 'error');
+}
+
+async function deleteBanner(id) {
+  if (!confirm('确定删除该Banner？')) return;
+  const r = await api('DELETE', '/banners/' + id);
+  if (r.code === 0) { toast('删除成功'); loadBanners(); } else toast(r.msg, 'error');
+}
+
+// Orders
+let allOrders = [];
+async function loadAdminOrders(status, el) {
+  if (el) { document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active')); el.classList.add('active'); }
+  const r = await api('GET', '/admin/orders?status=' + status + '&pageSize=200');
+  if (r.code === 0) { allOrders = r.data.list; renderOrderTable(); }
+}
+
+function renderOrderTable() {
+  const tb = document.getElementById('orderTable');
+  const statusMap = { pending: '待付款', paid: '已付款', shipped: '已发货', received: '已完成', cancelled: '已取消' };
+  tb.innerHTML = allOrders.map(o => `<tr>
+    <td style="font-weight:500;font-family:monospace">${o.id}</td>
+    <td>${o.userName || o.userId}</td>
+    <td>${o.items.map(i => i.name + ' ×' + i.qty).join('<br>')}</td>
+    <td style="color:var(--danger);font-weight:600">¥${o.total.toLocaleString()}</td>
+    <td><span class="badge badge-${o.status}">${statusMap[o.status]}</span></td>
+    <td style="font-size:12px;color:var(--gray-400)">${new Date(o.createdAt).toLocaleString('zh-CN')}</td>
+    <td>
+      ${o.status === 'paid' ? '<button class="btn btn-sm btn-primary" onclick="updateOrderStatus(\'' + o.id + '\',\'shipped\')">发货</button>' : ''}
+      ${o.status === 'pending' ? '<button class="btn btn-sm btn-danger" onclick="updateOrderStatus(\'' + o.id + '\',\'cancelled\')">取消</button>' : ''}
+    </td>
+  </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-400)">暂无订单</td></tr>';
+}
+
+async function updateOrderStatus(id, status) {
+  const r = await api('PUT', '/orders/' + id + '/status', { status });
+  if (r.code === 0) { toast('状态已更新'); loadAdminOrders('all'); } else toast(r.msg, 'error');
+}
+
+// Users
+async function loadUsers() {
+  const r = await api('GET', '/admin/users');
+  if (r.code !== 0) return;
+  const tb = document.getElementById('userTable');
+  tb.innerHTML = r.data.map(u => `<tr>
+    <td style="font-family:monospace;font-size:12px">${u.id}</td>
+    <td>${u.phone}</td>
+    <td>${u.name}</td>
+    <td>${u.role === 'admin' ? '<span class="badge badge-admin">管理员</span>' : '<span class="badge badge-received">普通用户</span>'}</td>
+    <td style="font-size:12px;color:var(--gray-400)">${new Date(u.createdAt).toLocaleString('zh-CN')}</td>
+  </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray-400)">暂无用户</td></tr>';
+}
+
+// Drag & Drop
+document.querySelectorAll('.upload-area').forEach(area => {
+  ['dragenter','dragover'].forEach(evt => area.addEventListener(evt, e => { e.preventDefault(); area.classList.add('dragging'); }));
+  ['dragleave','drop'].forEach(evt => area.addEventListener(evt, e => { e.preventDefault(); area.classList.remove('dragging'); }));
+  area.addEventListener('drop', e => {
+    const files = e.dataTransfer.files;
+    if (!files.length) return;
+    const input = area.querySelector('input[type=file]');
+    if (input) {
+      const dt = new DataTransfer();
+      Array.from(files).forEach(f => dt.items.add(f));
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+});
+
+// Toast
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 2000);
+}
+</script>
+</body>
+</html>

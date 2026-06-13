@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>TechZone - 电子产品商城</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📱</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#4F46E5;--primary-dark:#4338CA;--primary-light:#EEF2FF;--primary-gradient:linear-gradient(135deg,#667eea 0%,#764ba2 100%);--danger:#EF4444;--success:#10B981;--warning:#F59E0B;--gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;--gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;--gray-900:#111827;--radius:14px;--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);--shadow-md:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -2px rgba(0,0,0,.05);--shadow-lg:0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px -4px rgba(0,0,0,.04)}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--gray-50);color:var(--gray-800);max-width:480px;margin:0 auto;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.page{display:none;padding-bottom:70px;min-height:100vh;animation:fadeUp .35s cubic-bezier(.4,0,.2,1)}
+.page.active{display:block}
+.page.auth-page.active{display:flex;flex-direction:column}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* ===== Auth Pages ===== */
+.auth-page{min-height:100vh;background:#fff;position:relative;overflow:hidden}
+.auth-bg{position:absolute;top:0;left:0;right:0;height:280px;background:var(--primary-gradient);border-radius:0 0 40px 40px;z-index:0}
+.auth-bg::before{content:"";position:absolute;top:-60px;right:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.08)}
+.auth-bg::after{content:"";position:absolute;top:40px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06)}
+.auth-header{text-align:center;padding:50px 24px 30px;position:relative;z-index:1}
+.auth-logo{width:64px;height:64px;background:rgba(255,255,255,.2);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15)}
+.auth-header h1{font-size:24px;font-weight:700;color:#fff;letter-spacing:-.5px}
+.auth-header p{font-size:13px;color:rgba(255,255,255,.75);margin-top:6px}
+.auth-card{flex:1;background:#fff;border-radius:28px 28px 0 0;margin-top:-20px;padding:32px 24px 40px;position:relative;z-index:2;box-shadow:0 -4px 20px rgba(0,0,0,.05)}
+.auth-card h2{font-size:20px;font-weight:700;color:var(--gray-900);margin-bottom:4px}
+.auth-card .subtitle{font-size:13px;color:var(--gray-400);margin-bottom:28px}
+.form-group{margin-bottom:20px}
+.form-label{font-size:13px;color:var(--gray-600);margin-bottom:8px;display:block;font-weight:500}
+.input-wrap{position:relative;display:flex;align-items:center}
+.input-wrap .input-icon{position:absolute;left:14px;font-size:18px;color:var(--gray-400);z-index:1}
+.form-input{width:100%;padding:14px 14px 14px 44px;border:2px solid var(--gray-100);border-radius:14px;font-size:15px;outline:none;transition:all .25s;background:var(--gray-50);color:var(--gray-800)}
+.form-input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(79,70,229,.08)}
+.form-input::placeholder{color:var(--gray-400)}
+.input-toggle{position:absolute;right:14px;cursor:pointer;font-size:12px;color:var(--primary);font-weight:500;background:none;border:none}
+.form-row{display:flex;gap:10px}
+.form-row .form-input{flex:1}
+.send-code{padding:0 18px;background:var(--primary-light);color:var(--primary);border:2px solid transparent;border-radius:14px;font-size:13px;cursor:pointer;white-space:nowrap;font-weight:600;transition:all .2s;height:52px;display:flex;align-items:center}
+.send-code:hover{background:var(--primary);color:#fff}
+.send-code:disabled{opacity:.5;cursor:not-allowed;background:var(--gray-100);color:var(--gray-400)}
+.form-options{display:flex;justify-content:space-between;align-items:center;margin:4px 0 28px;font-size:13px}
+.form-checkbox{display:flex;align-items:center;gap:8px;color:var(--gray-500);cursor:pointer}
+.form-checkbox input[type=checkbox]{width:16px;height:16px;accent-color:var(--primary);cursor:pointer}
+.form-link{color:var(--primary);text-decoration:none;font-weight:500;cursor:pointer}
+.auth-btn{width:100%;padding:15px;background:var(--primary);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.auth-btn::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);opacity:0;transition:opacity .25s}
+.auth-btn:hover::after{opacity:1}
+.auth-btn:active{transform:scale(.98);box-shadow:var(--shadow-lg)}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.auth-switch{text-align:center;margin-top:24px;font-size:13px;color:var(--gray-500)}
+.auth-switch a{color:var(--primary);text-decoration:none;font-weight:600;cursor:pointer;margin-left:4px}
+.auth-divider{display:flex;align-items:center;margin:28px 0;gap:16px}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:var(--gray-200)}
+.auth-divider span{font-size:12px;color:var(--gray-400);white-space:nowrap}
+.auth-social{display:flex;justify-content:center;gap:20px}
+.social-btn{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .2s;border:1px solid var(--gray-100);background:var(--gray-50)}
+.social-btn:hover{transform:scale(1.08);border-color:var(--primary-light)}
+.auth-back{position:absolute;top:16px;left:16px;width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:#fff;font-size:18px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);transition:all .2s}
+.auth-back:hover{background:rgba(255,255,255,.25)}
+
+/* ===== Tab Bar ===== */
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:62px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-around;border-top:1px solid rgba(0,0,0,.04);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.tab-item{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;cursor:pointer;padding:6px 0;transition:all .2s;position:relative}
+.tab-item .icon{font-size:22px;margin-bottom:2px;transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.tab-item .label{font-size:10px;color:var(--gray-400);transition:all .2s;font-weight:500}
+.tab-item.active .icon{transform:scale(1.15) translateY(-2px)}
+.tab-item.active .label{color:var(--primary);font-weight:700}
+.tab-badge{position:absolute;top:0;right:50%;transform:translateX(18px);background:var(--danger);color:#fff;font-size:10px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 4px}
+
+/* ===== Header ===== */
+.header{background:var(--primary-gradient);color:#fff;padding:18px 18px 14px;position:sticky;top:0;z-index:50}
+.header h1{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.header-sub{font-size:12px;opacity:.75;margin-top:2px}
+.search-bar{margin-top:10px;display:flex;align-items:center;background:rgba(255,255,255,.18);border-radius:12px;padding:10px 14px;gap:8px;backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.1)}
+.search-bar input{flex:1;background:none;border:none;color:#fff;font-size:14px;outline:none}
+.search-bar input::placeholder{color:rgba(255,255,255,.55)}
+
+/* ===== Banner ===== */
+.banner{margin:14px 16px;border-radius:var(--radius);overflow:hidden;position:relative;height:155px;background:var(--gray-200);box-shadow:var(--shadow-md)}
+.banner-slides{display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1);height:100%}
+.banner-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;position:relative;background-size:cover;background-position:center;transition:background .5s}
+.banner-slide:nth-child(1){background:linear-gradient(135deg,#667eea,#764ba2)}
+.banner-slide:nth-child(2){background:linear-gradient(135deg,#f093fb,#f5576c)}
+.banner-slide:nth-child(3){background:linear-gradient(135deg,#4facfe,#00f2fe)}
+.banner-slide .banner-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.5),rgba(0,0,0,.2))}
+.banner-content{padding:24px;text-align:center;z-index:1}
+.banner-content h2{font-size:22px;font-weight:700;margin-bottom:6px}
+.banner-content p{font-size:13px;opacity:.88}
+.banner-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.banner-dot{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.35);transition:all .35s}
+.banner-dot.active{width:20px;background:#fff}
+
+/* ===== Categories ===== */
+.categories{display:flex;justify-content:space-around;padding:18px 12px;margin:0 16px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow)}
+.category-item{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:transform .2s}
+.category-item:active{transform:scale(.92)}
+.cat-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.category-item:nth-child(1) .cat-icon{background:#EEF2FF}
+.category-item:nth-child(2) .cat-icon{background:#FEF3C7}
+.category-item:nth-child(3) .cat-icon{background:#DCFCE7}
+.category-item:nth-child(4) .cat-icon{background:#FCE7F3}
+.category-item:nth-child(5) .cat-icon{background:#F3E8FF}
+.category-name{font-size:11px;color:var(--gray-600);font-weight:500}
+
+/* ===== Section ===== */
+.section{margin:18px 16px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-size:17px;font-weight:700;color:var(--gray-800)}
+.section-more{font-size:12px;color:var(--gray-400);cursor:pointer;font-weight:500}
+
+/* ===== Product Grid ===== */
+.product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.product-card{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1)}
+.product-card:active{transform:scale(.97);box-shadow:var(--shadow-md)}
+.product-img{width:100%;aspect-ratio:1;background:linear-gradient(135deg,var(--gray-50),var(--gray-100));display:flex;align-items:center;justify-content:center;font-size:50px;position:relative;overflow:hidden}
+.product-tag{position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#FF6B6B,#EE5A24);color:#fff;font-size:10px;padding:3px 10px;border-radius:8px;font-weight:600;letter-spacing:.3px}
+.product-info{padding:12px}
+.product-name{font-size:13px;font-weight:500;color:var(--gray-800);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+.product-price{margin-top:8px;display:flex;align-items:baseline;gap:6px}
+.price-current{font-size:18px;font-weight:700;color:var(--danger)}
+.price-original{font-size:11px;color:var(--gray-400);text-decoration:line-through}
+.product-sales{font-size:10px;color:var(--gray-400);margin-top:4px}
+
+/* ===== Hot scroll ===== */
+.hot-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.hot-scroll::-webkit-scrollbar{display:none}
+.hot-scroll .product-card{min-width:145px;max-width:145px;scroll-snap-align:start;flex-shrink:0}
+
+/* ===== Filter ===== */
+.filter-bar{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-tag{padding:7px 18px;border-radius:20px;font-size:12px;white-space:nowrap;cursor:pointer;border:1.5px solid var(--gray-200);background:#fff;color:var(--gray-500);transition:all .2s;font-weight:500}
+.filter-tag.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 8px rgba(79,70,229,.25)}
+
+/* ===== Cart ===== */
+.cart-item{display:flex;gap:12px;padding:14px 16px;background:#fff;margin-bottom:1px;align-items:center}
+.cart-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--gray-300);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.cart-check.checked{background:var(--primary);border-color:var(--primary);color:#fff}
+.cart-check.checked::after{content:"✓";font-size:12px;font-weight:700}
+.cart-item-img{width:80px;height:80px;background:var(--gray-100);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-name{font-size:13px;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4}
+.cart-item-price{font-size:15px;font-weight:700;color:var(--danger);margin-top:6px}
+.qty-control{display:flex;align-items:center;gap:12px;margin-top:8px}
+.qty-btn{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--gray-200);background:var(--gray-50);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--gray-600);transition:all .2s;font-weight:600}
+.qty-btn:active{background:var(--gray-200);transform:scale(.9)}
+.qty-num{font-size:14px;font-weight:600;min-width:20px;text-align:center}
+.cart-footer{position:fixed;bottom:62px;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-top:1px solid var(--gray-100);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:50}
+.cart-select-all{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-600);cursor:pointer}
+.cart-total-price{font-size:18px;font-weight:700;color:var(--danger)}
+.checkout-btn{background:var(--primary);color:#fff;border:none;padding:11px 30px;border-radius:22px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(79,70,229,.25)}
+.checkout-btn:active{transform:scale(.95)}
+.cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--gray-400)}
+.cart-empty .empty-icon{font-size:64px;margin-bottom:16px;opacity:.6}
+.cart-empty p{font-size:14px}
+.cart-empty .go-shop{margin-top:20px;padding:12px 36px;background:var(--primary);color:#fff;border:none;border-radius:22px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(79,70,229,.25)}
+
+/* ===== Order ===== */
+.order-tabs{display:flex;background:#fff;border-bottom:1px solid var(--gray-100)}
+.order-tab{flex:1;text-align:center;padding:13px;font-size:13px;color:var(--gray-400);cursor:pointer;position:relative;transition:color .2s;font-weight:500}
+.order-tab.active{color:var(--primary);font-weight:700}
+.order-tab.active::after{content:"";position:absolute;bottom:0;left:30%;right:30%;height:3px;background:var(--primary);border-radius:2px}
+.order-card{background:#fff;margin:12px 16px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.order-header{display:flex;justify-content:space-between;padding:14px;border-bottom:1px solid var(--gray-50);font-size:12px}
+.order-id{color:var(--gray-400)}
+.order-status{font-weight:600}
+.order-status.pending{color:var(--warning)}
+.order-status.paid,.order-status.shipped{color:var(--primary)}
+.order-status.received{color:var(--success)}
+.order-status.cancelled{color:var(--gray-400)}
+.order-item{display:flex;gap:10px;padding:12px 14px}
+.order-item-img{width:64px;height:64px;background:var(--gray-100);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0}
+.order-item-info{flex:1}
+.order-item-name{font-size:13px;font-weight:500}
+.order-item-spec{font-size:11px;color:var(--gray-400);margin-top:2px}
+.order-item-bottom{display:flex;justify-content:space-between;margin-top:8px}
+.order-item-price{font-size:14px;font-weight:600;color:var(--danger)}
+.order-item-qty{font-size:12px;color:var(--gray-400)}
+.order-footer{display:flex;justify-content:space-between;align-items:center;padding:14px;border-top:1px solid var(--gray-50)}
+.order-total{font-size:13px;color:var(--gray-500)}
+.order-total span{font-weight:700;color:var(--danger);font-size:15px}
+.order-actions{display:flex;gap:8px}
+.order-btn{padding:7px 18px;border-radius:20px;font-size:12px;cursor:pointer;border:1.5px solid var(--gray-200);background:#fff;color:var(--gray-600);transition:all .2s;font-weight:500}
+.order-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(79,70,229,.2)}
+
+/* ===== Profile ===== */
+.profile-header{background:var(--primary-gradient);padding:44px 20px 36px;color:#fff;text-align:center;position:relative;overflow:hidden}
+.profile-header::before{content:"";position:absolute;top:-40px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.07)}
+.profile-header::after{content:"";position:absolute;bottom:-20px;left:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.05)}
+.profile-avatar{width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.18);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:38px;border:3px solid rgba(255,255,255,.25);backdrop-filter:blur(6px)}
+.profile-name{font-size:18px;font-weight:700}
+.profile-phone{font-size:13px;opacity:.7;margin-top:4px}
+.profile-stats{display:flex;background:#fff;margin:-22px 16px 0;border-radius:var(--radius);box-shadow:var(--shadow-lg);position:relative;z-index:10;padding:18px 8px}
+.stat-item{flex:1;text-align:center;cursor:pointer;transition:transform .2s}
+.stat-item:active{transform:scale(.95)}
+.stat-num{font-size:20px;font-weight:700;color:var(--gray-800)}
+.stat-label{font-size:11px;color:var(--gray-400);margin-top:3px}
+.profile-menu{margin:16px;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.menu-item{display:flex;align-items:center;padding:15px 16px;border-bottom:1px solid var(--gray-50);cursor:pointer;transition:background .15s}
+.menu-item:last-child{border-bottom:none}
+.menu-item:active{background:var(--gray-50)}
+.menu-icon{font-size:20px;margin-right:14px;width:28px;text-align:center}
+.menu-text{flex:1;font-size:14px;color:var(--gray-700)}
+.menu-arrow{color:var(--gray-300);font-size:13px;font-weight:600}
+.menu-badge{background:var(--danger);color:#fff;font-size:10px;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;margin-right:8px;padding:0 5px}
+
+/* ===== Detail Modal ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.show{display:flex}
+.modal-content{background:#fff;width:100%;max-width:480px;max-height:85vh;border-radius:20px 20px 0 0;overflow:hidden;animation:slideIn .3s ease;position:relative}
+.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;font-size:14px;transition:background .2s}
+.modal-close:hover{background:rgba(0,0,0,.12)}
+.modal-img{width:100%;aspect-ratio:1;background:linear-gradient(135deg,var(--gray-50),var(--gray-100));display:flex;align-items:center;justify-content:center;font-size:100px}
+.modal-body{padding:20px;overflow-y:auto;max-height:calc(85vh - 230px)}
+.modal-price{font-size:26px;font-weight:700;color:var(--danger)}
+.modal-name{font-size:16px;font-weight:600;margin-top:10px;line-height:1.4}
+.modal-desc{font-size:13px;color:var(--gray-500);margin-top:12px;line-height:1.7}
+.modal-footer{display:flex;padding:14px 16px;gap:12px;border-top:1px solid var(--gray-100);background:#fff}
+.modal-btn-cart{flex:1;padding:13px;border:2px solid var(--primary);color:var(--primary);background:#fff;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.modal-btn-cart:active{background:var(--primary-light)}
+.modal-btn-buy{flex:1;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.modal-btn-buy:active{transform:scale(.98)}
+
+/* ===== Sub Pages ===== */
+.sub-header{background:var(--primary-gradient);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.sub-back{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:background .2s;border:1px solid rgba(255,255,255,.1)}
+.sub-back:active{background:rgba(255,255,255,.25)}
+.sub-title{font-size:17px;font-weight:700}
+
+/* ===== Address ===== */
+.address-card{background:#fff;margin:12px 16px;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);display:flex;gap:14px;align-items:center;transition:transform .2s}
+.address-card:active{transform:scale(.98)}
+.address-card .addr-icon{font-size:28px}
+.address-card .addr-info{flex:1}
+.address-card .addr-name{font-size:14px;font-weight:600}
+.address-card .addr-detail{font-size:12px;color:var(--gray-500);margin-top:4px;line-height:1.5}
+
+/* ===== Settings ===== */
+.setting-group{background:#fff;margin:12px 16px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+
+/* ===== Toast ===== */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;padding:12px 28px;border-radius:12px;font-size:14px;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s;backdrop-filter:blur(8px)}
+.toast.show{opacity:1}
+
+/* ===== Loading ===== */
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--gray-400);font-size:13px;gap:8px}
+.loading::before{content:"";width:18px;height:18px;border:2px solid var(--gray-200);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- =================== HOME =================== -->
+<div id="page-home" class="page active">
+  <div class="header">
+    <h1>TechZone</h1>
+    <p class="header-sub">探索科技新生活</p>
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" placeholder="搜索手机、耳机、智能设备..." id="searchInput" oninput="filterProducts()">
+    </div>
+  </div>
+  <div class="banner" id="banner">
+    <div class="banner-slides" id="bannerSlides"></div>
+    <div class="banner-dots" id="bannerDots"></div>
+  </div>
+  <div class="categories">
+    <div class="category-item" onclick="switchTab(1);setFilter('手机')"><div class="cat-icon">📱</div><span class="category-name">手机</span></div>
+    <div class="category-item" onclick="switchTab(1);setFilter('电脑')"><div class="cat-icon">💻</div><span class="category-name">电脑</span></div>
+    <div class="category-item" onclick="switchTab(1);setFilter('耳机')"><div class="cat-icon">🎧</div><span class="category-name">耳机</span></div>
+    <div class="category-item" onclick="switchTab(1);setFilter('智能')"><div class="cat-icon">⌚</div><span class="category-name">智能穿戴</span></div>
+    <div class="category-item" onclick="switchTab(1);setFilter('全部')"><div class="cat-icon">🎮</div><span class="category-name">全部</span></div>
+  </div>
+  <div class="section">
+    <div class="section-header"><span class="section-title">🔥 热销爆款</span><span class="section-more" onclick="switchTab(1)">查看全部 ›</span></div>
+    <div class="hot-scroll" id="hotList"></div>
+  </div>
+  <div class="section">
+    <div class="section-header"><span class="section-title">⚡ 为你推荐</span></div>
+    <div class="product-grid" id="recommendList"></div>
+  </div>
+</div>
+
+<!-- =================== PRODUCTS =================== -->
+<div id="page-products" class="page">
+  <div class="header">
+    <h1>全部商品</h1>
+    <div class="search-bar"><span>🔍</span><input type="text" placeholder="搜索商品..." id="searchInput2" oninput="filterProducts()"></div>
+  </div>
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-tag active" onclick="setFilter('全部')">全部</div>
+    <div class="filter-tag" onclick="setFilter('手机')">手机</div>
+    <div class="filter-tag" onclick="setFilter('电脑')">电脑</div>
+    <div class="filter-tag" onclick="setFilter('耳机')">耳机</div>
+    <div class="filter-tag" onclick="setFilter('智能')">智能穿戴</div>
+    <div class="filter-tag" onclick="setFilter('平板')">平板</div>
+    <div class="filter-tag" onclick="setFilter('相机')">相机</div>
+  </div>
+  <div class="product-grid" id="allProducts" style="padding:0 16px 16px"></div>
+</div>
+
+<!-- =================== CART =================== -->
+<div id="page-cart" class="page">
+  <div class="header"><h1>购物车</h1><p class="header-sub" id="cartCount">共 0 件商品</p></div>
+  <div id="cartList"></div>
+  <div class="cart-footer" id="cartFooter" style="display:none">
+    <div class="cart-total">
+      <div class="cart-select-all" onclick="toggleSelectAll()">
+        <div class="cart-check" id="selectAllCheck"></div><span>全选</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div>合计: <span class="cart-total-price" id="cartTotalPrice">¥0</span></div>
+      <button class="checkout-btn" onclick="checkout()">结算(<span id="checkoutCount">0</span>)</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== ORDERS =================== -->
+<div id="page-orders" class="page">
+  <div class="header"><h1>我的订单</h1></div>
+  <div class="order-tabs" id="orderTabs">
+    <div class="order-tab active" onclick="filterOrders('all')">全部</div>
+    <div class="order-tab" onclick="filterOrders('pending')">待付款</div>
+    <div class="order-tab" onclick="filterOrders('shipped')">待发货</div>
+    <div class="order-tab" onclick="filterOrders('received')">已完成</div>
+  </div>
+  <div id="orderList"></div>
+</div>
+
+<!-- =================== PROFILE =================== -->
+<div id="page-profile" class="page">
+  <div class="profile-header">
+    <div class="profile-avatar" id="profileAvatar">👤</div>
+    <div class="profile-name" id="profileName">未登录</div>
+    <div class="profile-phone" id="profilePhone">点击登录享受更多优惠</div>
+  </div>
+  <div class="profile-stats">
+    <div class="stat-item" onclick="switchTab(3);filterOrders('pending')"><div class="stat-num" id="statPending">0</div><div class="stat-label">待付款</div></div>
+    <div class="stat-item" onclick="switchTab(3);filterOrders('shipped')"><div class="stat-num" id="statShipped">0</div><div class="stat-label">待发货</div></div>
+    <div class="stat-item" onclick="switchTab(3);filterOrders('received')"><div class="stat-num" id="statDone">0</div><div class="stat-label">已完成</div></div>
+    <div class="stat-item" onclick="showSubPage('address')"><div class="stat-num">📍</div><div class="stat-label">地址</div></div>
+  </div>
+  <div class="section" style="margin-top:12px">
+    <div class="section-header"><span class="section-title">我的订单</span><span class="section-more" onclick="switchTab(3)">全部订单 ›</span></div>
+  </div>
+  <div class="profile-menu">
+    <div class="menu-item" onclick="showSubPage('address')"><span class="menu-icon">📍</span><span class="menu-text">收货地址</span><span class="menu-arrow">›</span></div>
+    <div class="menu-item" onclick="showSubPage('settings')"><span class="menu-icon">⚙️</span><span class="menu-text">设置</span><span class="menu-arrow">›</span></div>
+    <div class="menu-item" onclick="showSubPage('about')"><span class="menu-icon">ℹ️</span><span class="menu-text">关于我们</span><span class="menu-arrow">›</span></div>
+    <div class="menu-item" onclick="showSubPage('help')"><span class="menu-icon">💬</span><span class="menu-text">帮助与反馈</span><span class="menu-arrow">›</span></div>
+  </div>
+  <div style="padding:0 16px;margin-top:8px"><button class="auth-btn" onclick="doLogout()" style="background:var(--danger);font-size:14px;padding:13px">退出登录</button></div>
+</div>
+
+<!-- =================== LOGIN =================== -->
+<div id="page-login" class="page auth-page">
+  <div class="auth-bg"></div>
+  <div class="auth-back" onclick="goBack()">←</div>
+  <div class="auth-header">
+    <div class="auth-logo">📱</div>
+    <h1>欢迎回来</h1>
+    <p>登录你的 TechZone 账号</p>
+  </div>
+  <div class="auth-card">
+    <div class="form-group">
+      <label class="form-label">手机号</label>
+      <div class="input-wrap">
+        <span class="input-icon">📱</span>
+        <input class="form-input" type="tel" placeholder="请输入手机号" id="loginPhone" maxlength="11">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">密码</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔒</span>
+        <input class="form-input" type="password" placeholder="请输入密码" id="loginPassword">
+        <button class="input-toggle" onclick="togglePwd('loginPassword',this)">显示</button>
+      </div>
+    </div>
+    <div class="form-options">
+      <label class="form-checkbox"><input type="checkbox" id="rememberMe" checked> 记住我</label>
+      <a class="form-link" onclick="showToast('请联系客服重置密码')">忘记密码？</a>
+    </div>
+    <button class="auth-btn" id="loginBtn" onclick="doLogin()">登 录</button>
+    <div class="auth-switch">还没有账号？<a onclick="showPage('register')">立即注册</a></div>
+    <div class="auth-divider"><span>其他登录方式</span></div>
+    <div class="auth-social">
+      <div class="social-btn" onclick="showToast('微信登录开发中')">💬</div>
+      <div class="social-btn" onclick="showToast('QQ登录开发中')">🐧</div>
+      <div class="social-btn" onclick="showToast('Apple登录开发中')">🍎</div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== REGISTER =================== -->
+<div id="page-register" class="page auth-page">
+  <div class="auth-bg"></div>
+  <div class="auth-back" onclick="goBack()">←</div>
+  <div class="auth-header">
+    <div class="auth-logo">✨</div>
+    <h1>创建账号</h1>
+    <p>注册即享新人专属优惠</p>
+  </div>
+  <div class="auth-card">
+    <div class="form-group">
+      <label class="form-label">手机号</label>
+      <div class="input-wrap">
+        <span class="input-icon">📱</span>
+        <input class="form-input" type="tel" placeholder="请输入手机号" id="regPhone" maxlength="11">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">验证码</label>
+      <div class="form-row">
+        <div class="input-wrap" style="flex:1">
+          <span class="input-icon">✉️</span>
+          <input class="form-input" type="text" placeholder="请输入验证码" id="regCode" maxlength="6">
+        </div>
+        <button class="send-code" id="regSendBtn" onclick="sendCode('reg')">获取验证码</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">设置密码</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔐</span>
+        <input class="form-input" type="password" placeholder="6-20位密码" id="regPassword">
+        <button class="input-toggle" onclick="togglePwd('regPassword',this)">显示</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">确认密码</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔐</span>
+        <input class="form-input" type="password" placeholder="再次输入密码" id="regPassword2">
+      </div>
+    </div>
+    <div style="margin:8px 0 24px">
+      <label class="form-checkbox"><input type="checkbox" id="regAgree" checked> 我已阅读并同意 <a class="form-link">《用户协议》</a> 和 <a class="form-link">《隐私政策》</a></label>
+    </div>
+    <button class="auth-btn" id="regBtn" onclick="doRegister()">注 册</button>
+    <div class="auth-switch">已有账号？<a onclick="showPage('login')">去登录</a></div>
+  </div>
+</div>
+
+<!-- =================== SUB PAGES =================== -->
+<div id="page-address" class="page">
+  <div class="sub-header"><div class="sub-back" onclick="goBack()">←</div><div class="sub-title">收货地址</div></div>
+  <div id="addressList">
+    <div class="address-card"><span class="addr-icon">🏠</span><div class="addr-info"><div class="addr-name">张三 138****8888</div><div class="addr-detail">广东省广州市天河区珠江新城花城大道88号</div></div></div>
+    <div class="address-card"><span class="addr-icon">🏢</span><div class="addr-info"><div class="addr-name">张三 138****8888</div><div class="addr-detail">广东省广州市海珠区琶洲人工智能与数字经济试验区</div></div></div>
+  </div>
+  <div style="padding:16px"><button class="auth-btn" onclick="showToast('功能开发中')">+ 新增收货地址</button></div>
+</div>
+
+<div id="page-settings" class="page">
+  <div class="sub-header"><div class="sub-back" onclick="goBack()">←</div><div class="sub-title">设置</div></div>
+  <div class="setting-group">
+    <div class="menu-item"><span class="menu-icon">👤</span><span class="menu-text">个人资料</span><span class="menu-arrow">›</span></div>
+    <div class="menu-item"><span class="menu-icon">🔔</span><span class="menu-text">消息通知</span><span class="menu-arrow">›</span></div>
+  </div>
+  <div class="setting-group">
+    <div class="menu-item"><span class="menu-icon">📦</span><span class="menu-text">清除缓存</span><span class="menu-arrow" style="color:var(--gray-400)">12.5MB</span></div>
+    <div class="menu-item"><span class="menu-icon">🔄</span><span class="menu-text">检查更新</span><span class="menu-arrow" style="color:var(--success)">已是最新</span></div>
+  </div>
+</div>
+
+<div id="page-about" class="page">
+  <div class="sub-header"><div class="sub-back" onclick="goBack()">←</div><div class="sub-title">关于我们</div></div>
+  <div style="text-align:center;padding:40px 20px">
+    <div style="font-size:64px;margin-bottom:16px">📱</div>
+    <h2 style="font-size:22px;font-weight:700">TechZone</h2>
+    <p style="color:var(--gray-400);font-size:13px;margin-top:4px">版本 1.0.0</p>
+    <p style="color:var(--gray-500);font-size:13px;margin-top:20px;line-height:1.8">
+      TechZone 是一个专注于电子产品展示与销售的电商平台。<br>
+      我们致力于为用户提供最新、最优质的电子产品，<br>
+      让每个人都能享受科技带来的美好生活。
+    </p>
+    <div style="margin-top:30px;padding:16px;background:var(--gray-50);border-radius:12px">
+      <p style="font-size:12px;color:var(--gray-400)">客服电话：400-888-8888</p>
+      <p style="font-size:12px;color:var(--gray-400);margin-top:4px">客服时间：周一至周日 9:00-21:00</p>
+    </div>
+  </div>
+</div>
+
+<div id="page-help" class="page">
+  <div class="sub-header"><div class="sub-back" onclick="goBack()">←</div><div class="sub-title">帮助与反馈</div></div>
+  <div class="setting-group">
+    <div class="menu-item"><span class="menu-icon">❓</span><span class="menu-text">常见问题</span><span class="menu-arrow">›</span></div>
+    <div class="menu-item"><span class="menu-icon">📋</span><span class="menu-text">退换货政策</span><span class="menu-arrow">›</span></div>
+    <div class="menu-item"><span class="menu-icon">🚚</span><span class="menu-text">配送说明</span><span class="menu-arrow">›</span></div>
+    <div class="menu-item"><span class="menu-icon">💰</span><span class="menu-text">支付方式</span><span class="menu-arrow">›</span></div>
+  </div>
+  <div class="setting-group">
+    <div class="menu-item"><span class="menu-icon">📝</span><span class="menu-text">意见反馈</span><span class="menu-arrow">›</span></div>
+  </div>
+</div>
+
+<!-- =================== DETAIL MODAL =================== -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-content">
+    <div class="modal-close" onclick="closeDetail()">✕</div>
+    <div class="modal-img" id="detailImg"></div>
+    <div class="modal-body">
+      <div class="modal-price" id="detailPrice"></div>
+      <div class="modal-name" id="detailName"></div>
+      <div class="modal-desc" id="detailDesc"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-cart" onclick="addToCartFromDetail()">加入购物车</button>
+      <button class="modal-btn-buy" onclick="buyNow()">立即购买</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- =================== TAB BAR =================== -->
+<div class="tab-bar">
+  <div class="tab-item active" onclick="switchTab(0)"><span class="icon">🏠</span><span class="label">首页</span></div>
+  <div class="tab-item" onclick="switchTab(1)"><span class="icon">🛒</span><span class="label">全部商品</span></div>
+  <div class="tab-item" onclick="switchTab(2)"><span class="icon">🛍️</span><span class="label">购物车</span><span class="tab-badge" id="cartBadge" style="display:none">0</span></div>
+  <div class="tab-item" onclick="switchTab(3)"><span class="icon">📋</span><span class="label">订单</span></div>
+  <div class="tab-item" onclick="switchTab(4)"><span class="icon">👤</span><span class="label">我的</span></div>
+</div>
+
+<script>
+const API = location.origin + '/api';
+let token = localStorage.getItem('tz_token') || '';
+let currentUser = JSON.parse(localStorage.getItem('tz_user') || 'null');
+let products = [];
+let cart = JSON.parse(localStorage.getItem('tz_cart') || '[]');
+let orders = [];
+let currentFilter = '全部';
+let currentDetail = null;
+let currentOrderFilter = 'all';
+let historyStack = [];
+
+function authHeaders() { return token ? { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' }; }
+function authHeadersGet() { return token ? { 'Authorization': 'Bearer ' + token } : {}; }
+
+async function api(method, url, body) {
+  try {
+    const opts = { method, headers: authHeaders() };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + url, opts);
+    return await r.json();
+  } catch (e) { return { code: -1, msg: '网络错误' }; }
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadBanners();
+  await loadProducts();
+  renderCart();
+  updateProfile();
+});
+
+// Auth
+function setAuth(t, u) { token = t; currentUser = u; localStorage.setItem('tz_token', t); localStorage.setItem('tz_user', JSON.stringify(u)); }
+function clearAuth() { token = ''; currentUser = null; localStorage.removeItem('tz_token'); localStorage.removeItem('tz_user'); }
+
+async function doLogin() {
+  const phone = document.getElementById('loginPhone').value;
+  const password = document.getElementById('loginPassword').value;
+  if (!/^1\d{10}$/.test(phone)) return showToast('请输入正确手机号');
+  if (!password) return showToast('请输入密码');
+  const r = await api('POST', '/auth/login', { phone, password });
+  if (r.code !== 0) return showToast(r.msg);
+  setAuth(r.data.token, r.data.user);
+  showToast('登录成功！');
+  setTimeout(() => { updateProfile(); switchTab(4); }, 600);
+}
+
+async function doRegister() {
+  const phone = document.getElementById('regPhone').value;
+  const code = document.getElementById('regCode').value;
+  const pwd = document.getElementById('regPassword').value;
+  const pwd2 = document.getElementById('regPassword2').value;
+  if (!/^1\d{10}$/.test(phone)) return showToast('请输入正确手机号');
+  if (code !== '123456') return showToast('验证码错误');
+  if (pwd.length < 6) return showToast('密码至少6位');
+  if (pwd !== pwd2) return showToast('两次密码不一致');
+  if (!document.getElementById('regAgree').checked) return showToast('请同意用户协议');
+  const r = await api('POST', '/auth/register', { phone, password: pwd });
+  if (r.code !== 0) return showToast(r.msg);
+  setAuth(r.data.token, r.data.user);
+  showToast('注册成功！');
+  setTimeout(() => { updateProfile(); switchTab(4); }, 600);
+}
+
+function doLogout() { clearAuth(); updateProfile(); showToast('已退出登录'); }
+
+function sendCode(prefix) {
+  const phone = document.getElementById(prefix + 'Phone').value;
+  if (!/^1\d{10}$/.test(phone)) return showToast('请输入正确手机号');
+  const btn = document.getElementById(prefix + 'SendBtn');
+  btn.disabled = true;
+  let sec = 60;
+  btn.textContent = sec + 's';
+  const t = setInterval(() => { sec--; btn.textContent = sec + 's'; if (sec <= 0) { clearInterval(t); btn.disabled = false; btn.textContent = '获取验证码'; } }, 1000);
+  showToast('验证码已发送 (模拟: 123456)');
+}
+
+function togglePwd(id, btn) {
+  const input = document.getElementById(id);
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '隐藏'; }
+  else { input.type = 'password'; btn.textContent = '显示'; }
+}
+
+// Products
+async function loadProducts() {
+  const r = await api('GET', '/products');
+  if (r.code === 0) products = r.data.list;
+  else products = getDefaultProducts();
+  renderHotProducts();
+  renderRecommend();
+  renderAllProducts();
+}
+
+function getDefaultProducts() {
+  return [
+    {id:'p1',name:'iPhone 17 Pro Max 256GB',price:9999,originalPrice:10999,category:'手机',icon:'📱',tag:'新品',sales:3256,desc:'A19仿生芯片 / 钛金属设计 / 4800万像素三摄系统'},
+    {id:'p2',name:'MacBook Pro 14英寸 M4 Pro',price:16999,originalPrice:17999,category:'电脑',icon:'💻',tag:'热销',sales:2100,desc:'Apple M4 Pro芯片 / 18GB统一内存 / 512GB固态硬盘'},
+    {id:'p3',name:'AirPods Pro 3 主动降噪耳机',price:1899,originalPrice:2099,category:'耳机',icon:'🎧',tag:'爆款',sales:8930,desc:'自适应降噪 / 空间音频 / IP54防尘防水'},
+    {id:'p4',name:'Apple Watch Ultra 3',price:6499,originalPrice:6999,category:'智能',icon:'⌚',tag:'新品',sales:1860,desc:'49mm钛金属表壳 / 双频GPS / 最长72小时续航'},
+    {id:'p5',name:'Samsung Galaxy S26 Ultra',price:8999,originalPrice:9499,category:'手机',icon:'📱',tag:'新品',sales:4200,desc:'骁龙8 Gen 4 / 2亿像素 / S Pen / 120W快充'},
+  ];
+}
+
+function renderHotProducts() {
+  const hot = [...products].sort((a, b) => b.sales - a.sales).slice(0, 6);
+  document.getElementById('hotList').innerHTML = hot.map(p => productCardHTML(p)).join('');
+}
+
+function renderRecommend() {
+  const rec = [...products].sort(() => Math.random() - 0.5).slice(0, 6);
+  document.getElementById('recommendList').innerHTML = rec.map(p => productCardHTML(p)).join('');
+}
+
+function renderAllProducts() {
+  const list = getFilteredProducts();
+  document.getElementById('allProducts').innerHTML = list.length
+    ? list.map(p => productCardHTML(p)).join('')
+    : '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray-400)"><div style="font-size:48px;margin-bottom:12px">🔍</div>没有找到相关商品</div>';
+}
+
+function productCardHTML(p) {
+  const imgHtml = p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover">` : p.icon;
+  return `<div class="product-card" onclick="openDetail('${p.id}')">
+    <div class="product-img">${imgHtml}${p.tag ? '<span class="product-tag">' + p.tag + '</span>' : ''}</div>
+    <div class="product-info">
+      <div class="product-name">${p.name}</div>
+      <div class="product-price"><span class="price-current">¥${p.price.toLocaleString()}</span><span class="price-original">¥${p.originalPrice.toLocaleString()}</span></div>
+      <div class="product-sales">已售 ${p.sales.toLocaleString()}+</div>
+    </div>
+  </div>`;
+}
+
+function getFilteredProducts() {
+  const q = (document.getElementById('searchInput')?.value || document.getElementById('searchInput2')?.value || '').toLowerCase();
+  return products.filter(p => {
+    const matchCat = currentFilter === '全部' || p.category === currentFilter;
+    const matchQ = !q || p.name.toLowerCase().includes(q) || p.category.includes(q);
+    return matchCat && matchQ;
+  });
+}
+
+function filterProducts() { renderAllProducts(); }
+function setFilter(cat) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.toggle('active', t.textContent === cat || (cat === '智能' && t.textContent === '智能穿戴')));
+  renderAllProducts();
+}
+
+// Detail
+function openDetail(id) {
+  currentDetail = products.find(p => p.id === id);
+  if (!currentDetail) return;
+  const imgEl = document.getElementById('detailImg');
+  if (currentDetail.image) {
+    imgEl.innerHTML = `<img src="${currentDetail.image}" style="width:100%;height:100%;object-fit:cover">`;
+  } else if (currentDetail.video) {
+    imgEl.innerHTML = `<video src="${currentDetail.video}" controls style="width:100%;height:100%;object-fit:cover"></video>`;
+  } else {
+    imgEl.innerHTML = currentDetail.icon;
+  }
+  document.getElementById('detailPrice').textContent = '¥' + currentDetail.price.toLocaleString();
+  document.getElementById('detailName').textContent = currentDetail.name;
+  let descHtml = `<strong>商品详情</strong><br>${currentDetail.desc}<br><br><strong>规格参数</strong><br>品牌：TechZone官方正品<br>保修：全国联保一年<br>发货：顺丰包邮 预计次日达`;
+  if (currentDetail.video) {
+    descHtml += `<br><br><strong>商品视频</strong><br><video src="${currentDetail.video}" controls style="width:100%;border-radius:10px;margin-top:8px;max-height:300px"></video>`;
+  }
+  if (currentDetail.detailImages && currentDetail.detailImages.length) {
+    descHtml += `<br><br><strong>详情图片</strong><div style="margin-top:8px">`;
+    currentDetail.detailImages.forEach(url => {
+      descHtml += `<img src="${url}" style="width:100%;border-radius:8px;margin-bottom:8px">`;
+    });
+    descHtml += `</div>`;
+  }
+  document.getElementById('detailDesc').innerHTML = descHtml;
+  document.getElementById('detailModal').classList.add('show');
+}
+function closeDetail() { document.getElementById('detailModal').classList.remove('show'); }
+function addToCartFromDetail() { if (currentDetail) { addToCart(currentDetail.id); closeDetail(); } }
+function buyNow() { if (currentDetail) { addToCart(currentDetail.id); closeDetail(); switchTab(2); } }
+
+// Tab / Page
+function switchTab(idx) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active')); const pages = ['page-home','page-products','page-cart','page-orders','page-profile']; document.getElementById(pages[idx]).classList.add('active'); document.querySelectorAll('.tab-item')[idx].classList.add('active'); historyStack = []; if (idx === 1) loadProducts(); if (idx === 3) loadOrders(); }
+function showPage(name) { historyStack.push(getCurrentPage()); document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('page-' + name).classList.add('active'); }
+function showSubPage(name) { historyStack.push(getCurrentPage()); document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('page-' + name).classList.add('active'); }
+function goBack() { if (historyStack.length > 0) { const prev = historyStack.pop(); document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(prev).classList.add('active'); } else switchTab(4); }
+function getCurrentPage() { const a = document.querySelector('.page.active'); return a ? a.id : 'page-home'; }
+
+// Cart
+function addToCart(id) { const item = cart.find(c => c.id === id); if (item) item.qty++; else cart.push({ id, qty: 1, checked: true }); saveCart(); renderCart(); showToast('已加入购物车'); }
+function removeFromCart(id) { cart = cart.filter(c => c.id !== id); saveCart(); renderCart(); }
+function changeQty(id, delta) { const item = cart.find(c => c.id === id); if (!item) return; item.qty += delta; if (item.qty <= 0) { removeFromCart(id); return; } saveCart(); renderCart(); }
+function toggleCartItem(id) { const item = cart.find(c => c.id === id); if (item) item.checked = !item.checked; saveCart(); renderCart(); }
+function toggleSelectAll() { const allChecked = cart.every(c => c.checked); cart.forEach(c => c.checked = !allChecked); saveCart(); renderCart(); }
+function saveCart() { localStorage.setItem('tz_cart', JSON.stringify(cart)); }
+
+function renderCart() {
+  const badge = document.getElementById('cartBadge');
+  const totalQty = cart.reduce((s, c) => s + c.qty, 0);
+  badge.textContent = totalQty;
+  badge.style.display = totalQty > 0 ? 'flex' : 'none';
+  document.getElementById('cartCount').textContent = `共 ${totalQty} 件商品`;
+  const listEl = document.getElementById('cartList');
+  const footer = document.getElementById('cartFooter');
+  if (cart.length === 0) { listEl.innerHTML = '<div class="cart-empty"><div class="empty-icon">🛒</div><p>购物车是空的</p><button class="go-shop" onclick="switchTab(1)">去逛逛</button></div>'; footer.style.display = 'none'; return; }
+  listEl.innerHTML = cart.map(c => { const p = products.find(x => x.id === c.id); if (!p) return ''; return `<div class="cart-item"><div class="cart-check ${c.checked ? 'checked' : ''}" onclick="toggleCartItem('${c.id}')"></div><div class="cart-item-img">${p.icon}</div><div class="cart-item-info"><div class="cart-item-name">${p.name}</div><div class="cart-item-price">¥${p.price.toLocaleString()}</div><div class="qty-control"><div class="qty-btn" onclick="changeQty('${c.id}',-1)">−</div><span class="qty-num">${c.qty}</span><div class="qty-btn" onclick="changeQty('${c.id}',1)">+</div></div></div></div>`; }).join('');
+  const checkedItems = cart.filter(c => c.checked);
+  const total = checkedItems.reduce((s, c) => { const p = products.find(x => x.id === c.id); return s + (p ? p.price * c.qty : 0); }, 0);
+  document.getElementById('cartTotalPrice').textContent = '¥' + total.toLocaleString();
+  document.getElementById('checkoutCount').textContent = checkedItems.reduce((s, c) => s + c.qty, 0);
+  document.getElementById('selectAllCheck').className = 'cart-check' + (cart.every(c => c.checked) ? ' checked' : '');
+  footer.style.display = 'flex';
+}
+
+async function checkout() {
+  const checkedItems = cart.filter(c => c.checked);
+  if (checkedItems.length === 0) return showToast('请选择商品');
+  if (!token) { showPage('login'); return showToast('请先登录'); }
+  const r = await api('POST', '/orders', { items: checkedItems.map(c => ({ id: c.id, qty: c.qty })) });
+  if (r.code !== 0) return showToast(r.msg);
+  cart = cart.filter(c => !c.checked);
+  saveCart(); renderCart();
+  showToast('下单成功！');
+  setTimeout(() => { loadOrders(); switchTab(3); }, 600);
+}
+
+// Orders
+async function loadOrders() {
+  if (!token) { document.getElementById('orderList').innerHTML = '<div class="cart-empty" style="padding-top:40px"><div class="empty-icon">📋</div><p>请先登录</p><button class="go-shop" onclick="showPage(\'login\')">去登录</button></div>'; return; }
+  const r = await api('GET', '/orders?status=' + currentOrderFilter);
+  if (r.code === 0) { orders = r.data.list; renderOrders(); }
+}
+
+function renderOrders() {
+  const el = document.getElementById('orderList');
+  const statusMap = { pending: '待付款', paid: '已付款', shipped: '待发货', received: '已完成', cancelled: '已取消' };
+  if (orders.length === 0) { el.innerHTML = '<div class="cart-empty" style="padding-top:40px"><div class="empty-icon">📋</div><p>暂无订单</p></div>'; return; }
+  el.innerHTML = orders.map(o => `<div class="order-card"><div class="order-header"><span class="order-id">${o.id}</span><span class="order-status ${o.status}">${statusMap[o.status] || o.status}</span></div>${o.items.map(item => `<div class="order-item"><div class="order-item-img">${item.icon}</div><div class="order-item-info"><div class="order-item-name">${item.name}</div><div class="order-item-bottom"><span class="order-item-price">¥${item.price.toLocaleString()}</span><span class="order-item-qty">×${item.qty}</span></div></div></div>`).join('')}<div class="order-footer"><div class="order-total">共${o.items.reduce((s,i)=>s+i.qty,0)}件 合计: <span>¥${o.total.toLocaleString()}</span></div><div class="order-actions">${o.status === 'pending' ? '<button class="order-btn primary" onclick="payOrder(\'' + o.id + '\')">去付款</button><button class="order-btn" onclick="cancelOrder(\'' + o.id + '\')">取消</button>' : ''}${o.status === 'shipped' ? '<button class="order-btn primary" onclick="receiveOrder(\'' + o.id + '\')">确认收货</button>' : ''}</div></div></div>`).join('');
+}
+
+function filterOrders(status) { currentOrderFilter = status; document.querySelectorAll('.order-tab').forEach((t, i) => t.classList.toggle('active', ['all','pending','shipped','received'][i] === status)); loadOrders(); }
+
+async function payOrder(id) { const r = await api('PUT', '/orders/' + id + '/status', { status: 'paid' }); if (r.code === 0) { showToast('付款成功！'); loadOrders(); updateProfile(); } else showToast(r.msg); }
+async function cancelOrder(id) { const r = await api('PUT', '/orders/' + id + '/status', { status: 'cancelled' }); if (r.code === 0) { showToast('已取消'); loadOrders(); updateProfile(); } else showToast(r.msg); }
+async function receiveOrder(id) { const r = await api('PUT', '/orders/' + id + '/status', { status: 'received' }); if (r.code === 0) { showToast('已确认收货'); loadOrders(); updateProfile(); } else showToast(r.msg); }
+
+// Profile
+function updateProfile() {
+  if (currentUser && token) { document.getElementById('profileName').textContent = currentUser.name; document.getElementById('profilePhone').textContent = currentUser.phone; document.getElementById('profileAvatar').textContent = '😊'; }
+  else { document.getElementById('profileName').textContent = '未登录'; document.getElementById('profilePhone').textContent = '点击登录享受更多优惠'; document.getElementById('profileAvatar').textContent = '👤'; }
+}
+
+// Banner
+let bannerIdx = 0;
+let bannerTimer = null;
+let banners = [];
+
+const defaultBanners = [
+  { id: 'b1', title: '新品首发', subtitle: 'iPhone 17 Pro Max 限时特惠', bg: 'linear-gradient(135deg,#667eea,#764ba2)', image: '', sort: 1 },
+  { id: 'b2', title: '618大促', subtitle: '全场满减 最高立减2000元', bg: 'linear-gradient(135deg,#f093fb,#f5576c)', image: '', sort: 2 },
+  { id: 'b3', title: '智能穿戴', subtitle: 'Apple Watch 半价抢购', bg: 'linear-gradient(135deg,#4facfe,#00f2fe)', image: '', sort: 3 }
+];
+
+async function loadBanners() {
+  const r = await api('GET', '/banners');
+  if (r.code === 0 && r.data && r.data.length > 0) {
+    banners = r.data.filter(b => b.status === 1).sort((a, b) => a.sort - b.sort);
+  } else {
+    banners = defaultBanners;
+  }
+  renderBanners();
+}
+
+function renderBanners() {
+  const slidesEl = document.getElementById('bannerSlides');
+  const dotsEl = document.getElementById('bannerDots');
+  if (!banners.length) banners = defaultBanners;
+
+  slidesEl.innerHTML = banners.map(b => {
+    const bgStyle = b.image ? `background-image:url('${b.image}');background-color:${b.bg || '#667eea'}` : `background:${b.bg || 'linear-gradient(135deg,#667eea,#764ba2)'}`;
+    return `<div class="banner-slide" style="${bgStyle}">
+      ${b.image ? '<div class="banner-overlay"></div>' : ''}
+      <div class="banner-content"><h2>${b.title}</h2><p>${b.subtitle}</p></div>
+    </div>`;
+  }).join('');
+
+  dotsEl.innerHTML = banners.map((_, i) => `<div class="banner-dot${i === 0 ? ' active' : ''}"></div>`).join('');
+
+  bannerIdx = 0;
+  updateBanner();
+  startBanner();
+}
+
+function startBanner() {
+  if (bannerTimer) clearInterval(bannerTimer);
+  if (banners.length <= 1) return;
+  bannerTimer = setInterval(() => { bannerIdx = (bannerIdx + 1) % banners.length; updateBanner(); }, 3500);
+}
+
+function updateBanner() {
+  document.getElementById('bannerSlides').style.transform = `translateX(-${bannerIdx * 100}%)`;
+  document.querySelectorAll('.banner-dot').forEach((d, i) => d.classList.toggle('active', i === bannerIdx));
+}
+
+// Toast
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1500); }
+
+// Banner touch
+let touchStartX = 0;
+document.getElementById('banner')?.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.getElementById('banner')?.addEventListener('touchend', e => { const diff = touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 40) { bannerIdx = diff > 0 ? Math.min(bannerIdx + 1, banners.length - 1) : Math.max(bannerIdx - 1, 0); updateBanner(); } });
+</script>
+</body>
+</html>
